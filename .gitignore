@@ -1,0 +1,19 @@
+# Course admin files (team list contains other students' SRNs)
+*.xlsx
+~$*
+Guidelines and Instructions_Mini Project Assignment.pdf
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# Editor / OS
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
+
+.claude/
