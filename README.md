@@ -28,7 +28,7 @@ The task is three-class classification of English Premier League matches
 
 ```bash
 python -m venv .venv
-.venv\Scriptsctivate
+.venv\Scripts\activate
 pip install -r requirements.txt
 python src/build_features.py
 python src/run_experiments.py
@@ -40,15 +40,15 @@ A full run takes about a minute.
 
 ## Repository layout
 
-| Path | Contents |
-|---|---|
-| `src/build_features.py` | Builds F1, F2 and F3 from the raw rosters, lineups and results |
-| `src/run_experiments.py` | Splits the data, trains all models, writes the results table and plot |
-| `src/gda.py` | Gaussian discriminant analysis written by hand |
-| `data/raw/` | Per-season rosters, lineups and match results |
-| `data/processed/matches.csv` | One row per match: season, teams, score, label and all features |
-| `results/` | Output of the latest run |
-| `per.pdf` | The paper |
+| Path                         | Contents                                                              |
+| ---------------------------- | --------------------------------------------------------------------- |
+| `src/build_features.py`      | Builds F1, F2 and F3 from the raw rosters, lineups and results        |
+| `src/run_experiments.py`     | Splits the data, trains all models, writes the results table and plot |
+| `src/gda.py`                 | Gaussian discriminant analysis written by hand                        |
+| `data/raw/`                  | Per-season rosters, lineups and match results                         |
+| `data/processed/matches.csv` | One row per match: season, teams, score, label and all features       |
+| `results/`                   | Output of the latest run                                              |
+| `per.pdf`                    | The paper                                                             |
 
 ## Data
 
@@ -85,15 +85,15 @@ There are 3,791 matches with both a lineup and a result (the paper states 3,800)
 Test accuracy on the 759 held-out matches; training accuracy and per-class recall are in
 `results/results.csv`.
 
-| Model | F1 | F2 | F3 |
-|---|---|---|---|
-| GDA | 57.05% | 53.62% | failed (singular covariance) |
-| SVM (linear) | 56.92% | 57.31% | 53.23% |
-| SVM (degree-5 polynomial) | 52.04% | 52.04% | 49.01% |
-| SVM (RBF) | 56.65% | 55.73% | 55.60% |
-| SoftMax (linear) | 56.79% | 56.92% | 53.49% |
-| SoftMax (quadratic) | **57.44%** | 54.28% | not run |
-| Neural network | **57.44%** | 57.05% | 53.75% |
+| Model                     | F1         | F2     | F3                           |
+| ------------------------- | ---------- | ------ | ---------------------------- |
+| GDA                       | 57.05%     | 53.62% | failed (singular covariance) |
+| SVM (linear)              | 56.92%     | 57.31% | 53.23%                       |
+| SVM (degree-5 polynomial) | 52.04%     | 52.04% | 49.01%                       |
+| SVM (RBF)                 | 56.65%     | 55.73% | 55.60%                       |
+| SoftMax (linear)          | 56.79%     | 56.92% | 53.49%                       |
+| SoftMax (quadratic)       | **57.44%** | 54.28% | not run                      |
+| Neural network            | **57.44%** | 57.05% | 53.75%                       |
 
 ![Training and test accuracy](results/accuracy.png)
 
