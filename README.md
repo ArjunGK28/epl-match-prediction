@@ -40,15 +40,20 @@ A full run takes about a minute.
 
 ## Repository layout
 
-| Path                         | Contents                                                              |
-| ---------------------------- | --------------------------------------------------------------------- |
-| `src/build_features.py`      | Builds F1, F2 and F3 from the raw rosters, lineups and results        |
-| `src/run_experiments.py`     | Splits the data, trains all models, writes the results table and plot |
-| `src/gda.py`                 | Gaussian discriminant analysis written by hand                        |
-| `data/raw/`                  | Per-season rosters, lineups and match results                         |
-| `data/processed/matches.csv` | One row per match: season, teams, score, label and all features       |
-| `results/`                   | Output of the latest run                                              |
-| `per.pdf`                    | The paper                                                             |
+| Path                             | Contents                                                              |
+| -------------------------------- | --------------------------------------------------------------------- |
+| `src/build_features.py`          | Builds F1, F2 and F3 from the raw rosters, lineups and results        |
+| `src/run_experiments.py`         | Splits the data, trains all models, writes the results table and plot |
+| `src/gda.py`                     | Gaussian discriminant analysis written by hand                        |
+| `src/experiment_utils.py`        | Shared helpers for the extra experiments                              |
+| `src/analysis.py`                | Confusion matrices and per-class precision/recall                     |
+| `src/tune_svm.py`                | Cross-validated tuning of the polynomial SVM                          |
+| `src/multi_seed.py`              | Mean and std of test accuracy over 10 random splits                   |
+| `src/class_weight_experiment.py` | Balanced class weights and draw prediction                            |
+| `data/raw/`                      | Per-season rosters, lineups and match results                         |
+| `data/processed/matches.csv`     | One row per match: season, teams, score, label and all features       |
+| `results/`                       | Output of the latest run                                              |
+| `per.pdf`                        | The paper                                                             |
 
 ## Data
 
@@ -112,24 +117,24 @@ Test accuracy on the 759 held-out matches; training accuracy and per-class recal
 Added after the base reproduction. Run each from the repository root after
 `python src/build_features.py`. They share helpers in `src/experiment_utils.py`.
 
-| Script | What it does | Output |
-|---|---|---|
-| `src/analysis.py` | Confusion matrices and per-class precision/recall (seed 0) | `results/per_class_metrics.csv`, `results/confusion_matrices.png` |
-| `src/tune_svm.py` | 5-fold CV grid search for the polynomial SVM on F1 and F2 (about 10 min) | `results/tune_svm.csv` |
-| `src/class_weight_experiment.py` | Compares `class_weight` none vs balanced for draw prediction | `results/class_weight.csv` |
-| `src/multi_seed.py` | Repeats the 80/20 split over 10 seeds, reports mean and std | `results/multi_seed.csv`, `results/multi_seed.png` |
+| Script                           | What it does                                                             | Output                                                            |
+| -------------------------------- | ------------------------------------------------------------------------ | ----------------------------------------------------------------- |
+| `src/analysis.py`                | Confusion matrices and per-class precision/recall (seed 0)               | `results/per_class_metrics.csv`, `results/confusion_matrices.png` |
+| `src/tune_svm.py`                | 5-fold CV grid search for the polynomial SVM on F1 and F2 (about 10 min) | `results/tune_svm.csv`                                            |
+| `src/class_weight_experiment.py` | Compares `class_weight` none vs balanced for draw prediction             | `results/class_weight.csv`                                        |
+| `src/multi_seed.py`              | Repeats the 80/20 split over 10 seeds, reports mean and std              | `results/multi_seed.csv`, `results/multi_seed.png`                |
 
 ### Test accuracy over 10 random splits (mean +/- std)
 
-| Model | F1 | F2 | F3 |
-|---|---|---|---|
-| GDA | 56.21 +/- 1.35 | 54.15 +/- 0.66 | failed |
-| SVM (linear) | 56.35 +/- 1.32 | 56.30 +/- 1.13 | 52.98 +/- 1.27 |
+| Model                     | F1             | F2             | F3             |
+| ------------------------- | -------------- | -------------- | -------------- |
+| GDA                       | 56.21 +/- 1.35 | 54.15 +/- 0.66 | failed         |
+| SVM (linear)              | 56.35 +/- 1.32 | 56.30 +/- 1.13 | 52.98 +/- 1.27 |
 | SVM (degree-5 polynomial) | 51.82 +/- 0.81 | 51.09 +/- 0.75 | 48.87 +/- 0.63 |
-| SVM (RBF) | 55.92 +/- 1.27 | 55.42 +/- 1.36 | 55.11 +/- 0.98 |
-| SoftMax (linear) | 56.35 +/- 1.48 | 56.14 +/- 1.23 | 53.44 +/- 0.91 |
-| SoftMax (quadratic) | 56.47 +/- 1.45 | 55.06 +/- 1.16 | not run |
-| Neural network | 56.35 +/- 1.51 | 55.64 +/- 1.19 | 53.65 +/- 0.79 |
+| SVM (RBF)                 | 55.92 +/- 1.27 | 55.42 +/- 1.36 | 55.11 +/- 0.98 |
+| SoftMax (linear)          | 56.35 +/- 1.48 | 56.14 +/- 1.23 | 53.44 +/- 0.91 |
+| SoftMax (quadratic)       | 56.47 +/- 1.45 | 55.06 +/- 1.16 | not run        |
+| Neural network            | 56.35 +/- 1.51 | 55.64 +/- 1.19 | 53.65 +/- 0.79 |
 
 - Across splits the F1 models (apart from the untuned polynomial SVM) lie within about 0.6
   points of each other, less than the split-to-split std, so no model is clearly best.
@@ -140,7 +145,7 @@ Added after the base reproduction. Run each from the repository root after
   The tuned model still predicts no draws.
 - `class_weight="balanced"` lifts draw recall from about 0% to 28-44% on F1 and F2, but
   draw precision is only about 30% and test accuracy falls by 2-5 points.
-  
+
 ## Known limitations
 
 - Player ratings are season averages, so they include the match being predicted.
