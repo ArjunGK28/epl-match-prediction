@@ -1,6 +1,6 @@
-"""Reproduce Figure 3 of the paper: train/test accuracy of every model on feature sets F1, F2 and F3.
+"""Train every model on feature sets F1, F2 and F3 and report train/test accuracy (Figure 3 of the paper).
 
-Run from the repository root:  python src/reproduce.py
+Run from the repository root, after src/build_features.py:  python src/run_experiments.py
 """
 import csv
 import time
@@ -15,59 +15,57 @@ import numpy as np
 from sklearn.exceptions import ConvergenceWarning
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import confusion_matrix
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.neural_network import MLPClassifier
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import PolynomialFeatures, StandardScaler
 from sklearn.svm import SVC
-from sklearn.utils import shuffle
 
+from build_features import F1_COLUMNS, F2_COLUMNS, F3_COLUMNS
 from gda import GDA
 
 ROOT = Path(__file__).resolve().parent.parent
-DATA = ROOT / "data"
+MATCHES = ROOT / "data" / "processed" / "matches.csv"
 RESULTS = ROOT / "results"
-TRAIN_RATIO = 0.8
+TEST_SIZE = 0.2
+SEED = 0
 LABELS = [1, 0, -1]  # home win, draw, home loss
 
 
-def split(data):
-    X, y = data[:, :-1], data[:, -1]
-    i = int(len(y) * TRAIN_RATIO)
-    return X[:i], y[:i], X[i:], y[i:]
-
-
 def load_feature_sets():
-    # F1 and F2 use the authors' saved shuffle, so the split is identical to the paper's.
-    roster = np.genfromtxt(DATA / "match_vectors_shuffled.csv", delimiter=",")
-    f1 = roster[:, [0, 5, 10]]  # home and away average roster rating, label
-    # F3 was shuffled in the authors' notebook with sklearn's shuffle(random_state=0).
-    extended = np.genfromtxt(DATA / "match_vectors_extended.csv", delimiter=",", skip_header=1)
-    return {"F1": split(f1), "F2": split(roster), "F3": split(shuffle(extended, random_state=0))}
+    with open(MATCHES, encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+    y = np.array([int(r["label"]) for r in rows])
+    # one random 80/20 split, stratified by outcome and shared by all feature sets
+    train, test = train_test_split(np.arange(len(y)), test_size=TEST_SIZE, stratify=y, random_state=SEED)
+    feature_sets = {}
+    for name, columns in [("F1", F1_COLUMNS), ("F2", F2_COLUMNS), ("F3", F3_COLUMNS)]:
+        X = np.array([[float(r[c]) for c in columns] for r in rows])
+        feature_sets[name] = (X[train], y[train], X[test], y[test])
+    return feature_sets
 
 
 def make_models():
-    # SVMs follow the authors' notebooks: unscaled inputs, default C, gamma = 1 / n_features
-    # (the scikit-learn default in 2019, now called "auto").
+    # every model except GDA gets standardised inputs; the scaler is fitted on the training set only
     return {
         "GDA": lambda: GDA(),
-        "SVM (linear)": lambda: SVC(kernel="linear"),
-        "SVM (poly5)": lambda: SVC(kernel="poly", degree=5, gamma="auto"),
-        "SVM (RBF)": lambda: SVC(kernel="rbf", gamma="auto"),
+        "SVM (linear)": lambda: make_pipeline(StandardScaler(), SVC(kernel="linear")),
+        "SVM (poly5)": lambda: make_pipeline(StandardScaler(), SVC(kernel="poly", degree=5)),
+        "SVM (RBF)": lambda: make_pipeline(StandardScaler(), SVC(kernel="rbf")),
         "SoftMax (linear)": lambda: make_pipeline(StandardScaler(), LogisticRegression(max_iter=5000)),
         "SoftMax (quad.)": lambda: make_pipeline(
             StandardScaler(), PolynomialFeatures(2, include_bias=False), StandardScaler(),
             LogisticRegression(max_iter=5000)),
-        # One hidden layer, settings from the authors' Neural_net.py. They picked the number of
-        # hidden nodes by test accuracy; here it is picked by cross-validation on the training set.
+        # one hidden layer trained with regularised SGD; the number of hidden nodes is chosen
+        # by 5-fold cross-validation on the training set
         "NN": lambda: GridSearchCV(
-            make_pipeline(StandardScaler(), MLPClassifier(solver="sgd", alpha=2, activation="tanh",
-                                                          max_iter=20000, random_state=0)),
-            {"mlpclassifier__hidden_layer_sizes": [(n,) for n in range(5, 20, 2)]}, cv=5, n_jobs=-1),
+            make_pipeline(StandardScaler(), MLPClassifier(solver="sgd", alpha=1.0, activation="tanh",
+                                                          max_iter=5000, random_state=SEED)),
+            {"mlpclassifier__hidden_layer_sizes": [(n,) for n in (4, 8, 16)]}, cv=5, n_jobs=-1),
     }
 
 
-SKIP = {("SoftMax (quad.)", "F3"): "not run (about 40,000 quadratic features; the paper also stopped it)"}
+SKIP = {("SoftMax (quad.)", "F3"): "not run (about 12,000 quadratic features; the paper also stopped it)"}
 
 
 def recall(y_true, y_pred):
