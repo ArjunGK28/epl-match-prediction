@@ -17,3 +17,6 @@ Thumbs.db
 .DS_Store
 
 .claude/
+
+# Local clone of the authors' original repository (reference only)
+EPL_match_prediction/
