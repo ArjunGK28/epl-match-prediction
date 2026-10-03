@@ -1,0 +1,20 @@
+model,features,n_seeds,mean_test_acc,std_test_acc
+GDA,F1,10,0.5621,0.0135
+GDA,F2,10,0.5415,0.0066
+SVM (linear),F1,10,0.5635,0.0132
+SVM (linear),F2,10,0.5630,0.0113
+SVM (linear),F3,10,0.5298,0.0127
+SVM (poly5),F1,10,0.5182,0.0081
+SVM (poly5),F2,10,0.5109,0.0075
+SVM (poly5),F3,10,0.4887,0.0063
+SVM (RBF),F1,10,0.5592,0.0127
+SVM (RBF),F2,10,0.5542,0.0136
+SVM (RBF),F3,10,0.5511,0.0098
+SoftMax (linear),F1,10,0.5635,0.0148
+SoftMax (linear),F2,10,0.5614,0.0123
+SoftMax (linear),F3,10,0.5344,0.0091
+SoftMax (quad.),F1,10,0.5647,0.0145
+SoftMax (quad.),F2,10,0.5506,0.0116
+NN,F1,10,0.5635,0.0151
+NN,F2,10,0.5564,0.0119
+NN,F3,10,0.5365,0.0079

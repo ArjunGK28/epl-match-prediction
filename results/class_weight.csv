@@ -1,0 +1,13 @@
+model,features,class_weight,test_acc,draw_recall,draw_precision,draws_predicted
+SVM (linear),F1,none,0.5692,0.0000,0.0000,0
+SVM (linear),F1,balanced,0.5336,0.3404,0.3033,211
+SVM (RBF),F1,none,0.5665,0.0000,0.0000,0
+SVM (RBF),F1,balanced,0.5191,0.4362,0.2971,276
+SoftMax (linear),F1,none,0.5679,0.0000,0.0000,0
+SoftMax (linear),F1,balanced,0.5415,0.2766,0.2989,174
+SVM (linear),F2,none,0.5731,0.0053,1.0000,1
+SVM (linear),F2,balanced,0.5336,0.3298,0.2981,208
+SVM (RBF),F2,none,0.5573,0.0106,0.1538,13
+SVM (RBF),F2,balanced,0.5323,0.3723,0.3196,219
+SoftMax (linear),F2,none,0.5692,0.0160,0.3333,9
+SoftMax (linear),F2,balanced,0.5455,0.3191,0.3226,186
